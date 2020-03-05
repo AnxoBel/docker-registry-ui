@@ -73,6 +73,13 @@ pagination .conatianer .pagination-centered {
   }
 }
 
+/* 1920px * 0.95 = 1824px */
+@media screen and (min-width: 1920px){
+  material-card, pagination .conatianer {
+    max-width: 1824px;
+  }
+}
+
 material-spinner {
   align-self: center;
 }

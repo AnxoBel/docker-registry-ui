@@ -41,15 +41,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <table show="{ registryUI.taglist.loadend }" style="border: none;">
       <thead>
       <tr>
-        <th>Creation date</th>
+        <th
+        id="image-date-header"
+        class="{registryUI.taglist.imageDateHeaderClassHelper(registryUI.taglist.sorted)}"
+        onclick="registryUI.taglist.imageDateHeaderOnClickHelper(registryUI.taglist.sorted);">Creation date
+        </th>
         <th>Size</th>
         <th id="image-content-digest-header">Content Digest</th>
 
         <th
         id="image-tag-header"
-        class="{ registryUI.taglist.asc ? 'material-card-th-sorted-ascending' : 'material-card-th-sorted-descending' }"
-        onclick="registryUI.taglist.reverse();">Tag
+        class="{registryUI.taglist.imageTagHeaderClassHelper(registryUI.taglist.sorted)}"
+        onclick="registryUI.taglist.imageTagHeaderOnClickHelper(registryUI.taglist.sorted);">Tag
         </th>
+
         <th class="show-tag-history">History</th>
         <th class={ 'remove-tag': true, delete: this.parent.toDelete > 0 } if="{ registryUI.isImageRemoveActivated }">
           <material-checkbox ref="remove-tag-checkbox" class="indeterminate" show={ this.toDelete === 0} title="Toggle multi-delete. Alt+Click to select all tags."></material-checkbox>
@@ -220,22 +225,121 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         });
         oReq.open('GET', registryUI.url() + '/v2/' + registryUI.taglist.name + '/tags/list');
         oReq.send();
-        registryUI.taglist.asc = true;
+        registryUI.taglist.sorted = 'tag-asc';
       }
     };
     registryUI.taglist.display();
     registryUI.taglist.instance.update();
 
-    registryUI.taglist.reverse = function() {
-      if (registryUI.taglist.asc) {
-        registryUI.taglist.tags.reverse();
-        registryUI.taglist.asc = false;
-      } else {
-        registryUI.taglist.tags.sort(registryUI.DockerImage.compare);
-        registryUI.taglist.asc = true;
-      }
+    registryUI.taglist.sort = function(order) {
+      switch(order) {
+        case 'tag-asc':
+          registryUI.taglist.tags.sort(registryUI.DockerImage.compare);
+          break;
+        case 'tag-desc':
+          registryUI.taglist.tags.sort(registryUI.DockerImage.compare);
+          registryUI.taglist.tags.reverse();
+          break;
+        case 'date-asc':
+          registryUI.taglist.tags.sort(registryUI.taglist.dateCompare);
+          break;
+        case 'date-desc':
+          registryUI.taglist.tags.sort(registryUI.taglist.dateCompare);
+          registryUI.taglist.tags.reverse();
+          break;
+        default:
+          // Empty for the moment
+      } 
+
+      registryUI.taglist.sorted = order;
       registryUI.taglist.instance.update();
     };
+
+    /*
+     * https://stackoverflow.com/questions/492994/compare-two-dates-with-javascript
+     */
+    registryUI.taglist.convertToDate = function(d) {
+        // Converts the date in d to a date-object. The input can be:
+        //   a date object: returned without modification
+        //  an array      : Interpreted as [year,month,day]. NOTE: month is 0-11.
+        //   a number     : Interpreted as number of milliseconds
+        //                  since 1 Jan 1970 (a timestamp) 
+        //   a string     : Any format supported by the javascript engine, like
+        //                  "YYYY/MM/DD", "MM/DD/YYYY", "Jan 31 2009" etc.
+        //  an object     : Interpreted as an object with year, month and date
+        //                  attributes.  **NOTE** month is 0-11.
+        return (
+            d.constructor === Date ? d :
+            d.constructor === Array ? new Date(d[0],d[1],d[2]) :
+            d.constructor === Number ? new Date(d) :
+            d.constructor === String ? new Date(d) :
+            typeof d === "object" ? new Date(d.year,d.month,d.date) :
+            NaN
+        );
+    }
+
+    registryUI.taglist.dateCompare = function(a,b) {
+        // Compare two dates (could be of any type supported by the convert
+        // function above) and returns:
+        //  -1 : if a < b
+        //   0 : if a = b
+        //   1 : if a > b
+        // NaN : if a or b is an illegal date
+        // NOTE: The code inside isFinite does an assignment (=).
+        return (
+            isFinite(a=registryUI.taglist.convertToDate(a.creationDate).valueOf()) &&
+            isFinite(b=registryUI.taglist.convertToDate(b.creationDate).valueOf()) ?
+            (a>b)-(a<b) :
+            NaN
+        );
+    }
+
+    registryUI.taglist.imageDateHeaderClassHelper = function(currentSort) {
+        if (currentSort == 'date-asc') {
+            return 'material-card-th-sorted-ascending';
+        } else if (currentSort == 'date-desc') {
+            return 'material-card-th-sorted-descending';
+        } else {
+            return '';
+        }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    registryUI.taglist.imageDateHeaderOnClickHelper = async function(currentSort) {
+        if (registryUI.taglist.loaded == undefined) {
+          while (registryUI.taglist.tags.some(image => image.creationDate == undefined)) {
+            await sleep(100);
+          }
+	      registryUI.taglist.loaded = true;
+        }
+        if (currentSort == 'date-asc') {
+            registryUI.taglist.sort('date-desc');
+        } else {
+            registryUI.taglist.sort('date-asc');
+        }
+    }
+
+    registryUI.taglist.imageTagHeaderClassHelper = function(currentSort) {
+        if (currentSort == 'tag-asc') {
+            return 'material-card-th-sorted-ascending';
+        } else if (currentSort == 'tag-desc') {
+            return 'material-card-th-sorted-descending';
+        } else {
+            return '';
+        }
+    }
+
+    registryUI.taglist.imageTagHeaderOnClickHelper = function(currentSort) {
+        if (currentSort == 'tag-asc') {
+            registryUI.taglist.sort('tag-desc');
+        } else {
+            registryUI.taglist.sort('tag-asc');
+        }
+    }
+
   </script>
   <!-- End of tag -->
 </taglist>

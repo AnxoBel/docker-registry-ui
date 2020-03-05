@@ -21,6 +21,7 @@
     "gulp-htmlmin": "^5.0.1",
     "gulp-if": "^2.0.0",
     "gulp-inject-version": "^1.0.1",
+    "gulp-jsbeautifier": "^3.0.1",
     "gulp-license": "^1.1.0",
     "gulp-riot": "^1.1.5",
     "gulp-uglify": "^3.0.2",

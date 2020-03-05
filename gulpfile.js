@@ -15,6 +15,7 @@ const minifier = require('gulp-uglify/composer')(uglify);
 const useref = require('gulp-useref');
 const injectVersion = require('gulp-inject-version');
 const merge = require('stream-series');
+const prettify = require('gulp-jsbeautifier');
 
 const allTags = ['src/tags/*.tag', 'src/tags/dialogs/*.tag'];
 
@@ -56,7 +57,8 @@ function clean() {
 function appStatic() {
   return merge(gulp.src(staticScripts), gulp.src(staticTags).pipe(riot()))
     .pipe(concat('docker-registry-ui-static.js'))
-    .pipe(minifier())
+//    .pipe(minifier())
+    .pipe(prettify())
     .pipe(license('agpl3', {
       tiny: false,
       project: 'docker-registry-ui',
@@ -70,7 +72,8 @@ function appStatic() {
 function app() {
   return merge(gulp.src(allScripts), gulp.src(allTags).pipe(riot()))
     .pipe(concat('docker-registry-ui.js'))
-    .pipe(minifier())
+//    .pipe(minifier())
+    .pipe(prettify())
     .pipe(license('agpl3', {
       tiny: false,
       project: 'docker-registry-ui',

@@ -68,13 +68,13 @@ registryUI.getHistoryIcon = function(attribute) {
 }
 
 registryUI.getPage = function(elts, page, limit) {
-  if (!limit) { limit = 100; }
+  if (!limit) { limit = 10000; }
   if (!elts) { return []; }
   return elts.slice((page - 1) * limit, limit * page);
 }
 
 registryUI.getNumPages = function(elts, limit) {
-  if (!limit) { limit = 100; }
+  if (!limit) { limit = 10000; }
   if (!elts) { return 0; }
   return Math.trunc(elts.length / limit) + 1;
 }
